@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema ERP Completo - SPA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        .slide-fade-enter-active,
+        .slide-fade-leave-active {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+        
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+        
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+        }
+        
+        .content-area {
+            transition: all 0.3s ease;
+        }
+        
+        .content-area.expanded {
+            margin-left: 80px;
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                z-index: 50;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .content-area {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="sidebar bg-indigo-800 text-white w-64 min-h-screen fixed md:relative flex flex-col" :class="{ 'collapsed': sidebarCollapsed }">
+            <!-- Sidebar Header -->
+            <div class="p-4 flex items-center justify-between border-b border-indigo-700">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-cube text-xl"></i>
+                    </div>
+                    <span class="logo-text text-xl font-bold">ERP Pro</span>
+                </div>
+                <button @click="toggleSidebar" class="text-gray-300 hover:text-white focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="p-4 border-b border-indigo-700 user-info">
+                <div class="flex items-center space-x-3">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="w-10 h-10 rounded-full">
+                    <div>
+                        <p class="font-medium">Maria Silva</p>
+                        <p class="text-xs text-indigo-300">Admin</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto py-4">
+                <div class="space-y-1 px-3">
+                    <a href="#" class="nav-item flex items-center px-3 py-2 rounded-lg bg-indigo-700 text-white">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        <span class="sidebar-text">Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center px-3 py-2 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white">
+                        <i class="fas fa-users mr-3"></i>
+                        <span class="sidebar-text">Clientes</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center px-3 py-2 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white">
+                        <i class="fas fa-boxes mr-3"></i>
+                        <span class="sidebar-text">Produtos</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center px-3 py-2 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white">
+                        <i class="fas fa-file-invoice-dollar mr-3"></i>
+                        <span class="sidebar-text">Vendas</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center px-3 py-2 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white">
+                        <i class="fas fa-warehouse mr-3"></i>
+                        <span class="sidebar-text">Estoque</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center px-3 py-2 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white">
+                        <i class="fas fa-chart-line mr-3"></i>
+                        <span class="sidebar-text">Relatórios</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center px-3 py-2 rounded-lg text-indigo-200 hover:bg-indigo-700 hover:text-white">
+                        <i class="fas fa-cog mr-3"></i>
+                        <span class="sidebar-text">Configurações</span>
+                    </a>
+                </div>
+                
+                <div class="px-3 mt-8">
+                    <div class="bg-indigo-900 rounded-lg p-3">
+                        <div class="flex items-center">
+                            <div class="bg-indigo-800 rounded-full p-2 mr-3">
+                                <i class="fas fa-lightbulb text-yellow-300"></i>
+                            </div>
+                            <div class="sidebar-text">
+                                <p class="text-xs font-medium text-white">Dica do dia</p>
+                                <p class="text-xs text-indigo-300">Use filtros para encontrar clientes rapidamente</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-indigo-700">
+                <button class="flex items-center space-x-2 text-indigo-300 hover:text-white">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="sidebar-text">Sair</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="content-area flex-1 flex flex-col" :class="{ 'expanded': sidebarCollapsed }">
+            <!-- Top Navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <button @click="toggleMobileSidebar" class="md:hidden text-gray-500 focus:outline-none">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <button class="text-gray-500 hover:text-gray-700 focus:outline-none relative">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span class="notification-badge bg-red-500 text-white rounded-full flex items-center justify-center">3</span>
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <button class="text-gray-500 hover:text-gray-700 focus:outline-none relative">
+                                <i class="fas fa-envelope text-xl"></i>
+                                <span class="notification-badge bg-blue-500 text-white rounded-full flex items-center justify-center">5</span>
+                            </button>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="flex items-center space-x-2">
+                                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="w-8 h-8 rounded-full">
+                                <span class="text-sm font-medium">Maria Silva</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Dashboard Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Total Vendas</p>
+                                <h3 class="text-2xl font-bold text-gray-800">R$ 24,780</h3>
+                                <p class="text-green-500 text-sm mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i> 12% vs último mês
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Novos Clientes</p>
+                                <h3 class="text-2xl font-bold text-gray-800">142</h3>
+                                <p class="text-green-500 text-sm mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i> 8% vs último mês
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fas fa-users text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Pedidos Pendentes</p>
+                                <h3 class="text-2xl font-bold text-gray-800">28</h3>
+                                <p class="text-red-500 text-sm mt-1">
+                                    <i class="fas fa-arrow-down mr-1"></i> 3% vs último mês
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                                <i class="fas fa-clipboard-list text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">Estoque Baixo</p>
+                                <h3 class="text-2xl font-bold text-gray-800">15</h3>
+                                <p class="text-yellow-500 text-sm mt-1">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i> Precisa atenção
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                <i class="fas fa-box-open text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Sales Chart -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800">Vendas Mensais</h2>
+                            <div class="flex space-x-2">
+                                <button class="px-3 py-1 text-xs bg-indigo-100 text-indigo-700 rounded-full">Mês</button>
+                                <button class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full">Ano</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Revenue Sources -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold text-gray-800">Fontes de Receita</h2>
+                            <button class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Orders & Top Products -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Recent Orders -->
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h2 class="text-lg font-semibold text-gray-800">Pedidos Recentes</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-001</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">João Santos</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ 1,250</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Pago</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-002</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Ana Oliveira</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ 890</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pendente</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-003</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Carlos Mendes</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ 2,150</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Pago</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#ORD-004</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Mariana Costa</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">R$ 1,750</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Cancelado</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="px-6 py-4 border-t border-gray-100">
+                            <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Ver todos os pedidos</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Products -->
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h2 class="text-lg font-semibold text-gray-800">Produtos Mais Vendidos</h2>
+                        </div>
+                        <div class="divide-y divide-gray-200">
+                            <div class="px-6 py-4 flex items-center">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-md bg-indigo-100 flex items-center justify-center">
+                                    <i class="fas fa-box text-indigo-600"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-medium text-gray-900">Notebook Pro</p>
+                                    <p class="text-sm text-gray-500">Vendidos: 142 unidades</p>
+                                </div>
+                                <div class="w-24">
+                                    <div class="progress-bar bg-gray-200">
+                                        <div class="bg-indigo-600" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-6 py-4 flex items-center">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-md bg-green-100 flex items-center justify-center">
+                                    <i class="fas fa-mobile-alt text-green-600"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-medium text-gray-900">Smartphone X</p>
+                                    <p class="text-sm text-gray-500">Vendidos: 98 unidades</p>
+                                </div>
+                                <div class="w-24">
+                                    <div class="progress-bar bg-gray-200">
+                                        <div class="bg-green-600" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-6 py-4 flex items-center">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-md bg-yellow-100 flex items-center justify-center">
+                                    <i class="fas fa-headphones text-yellow-600"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-medium text-gray-900">Fones Premium</p>
+                                    <p class="text-sm text-gray-500">Vendidos: 76 unidades</p>
+                                </div>
+                                <div class="w-24">
+                                    <div class="progress-bar bg-gray-200">
+                                        <div class="bg-yellow-600" style="width: 45%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-6 py-4 flex items-center">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-md bg-red-100 flex items-center justify-center">
+                                    <i class="fas fa-tablet-alt text-red-600"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <p class="text-sm font-medium text-gray-900">Tablet Lite</p>
+                                    <p class="text-sm text-gray-500">Vendidos: 52 unidades</p>
+                                </div>
+                                <div class="w-24">
+                                    <div class="progress-bar bg-gray-200">
+                                        <div class="bg-red-600" style="width: 30%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-6 py-4 border-t border-gray-100">
+                            <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Ver todos os produtos</a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    sidebarCollapsed: false,
+                    mobileSidebarOpen: false
+                }
+            },
+            methods: {
+                toggleSidebar() {
+                    this.sidebarCollapsed = !this.sidebarCollapsed;
+                },
+                toggleMobileSidebar() {
+                    this.mobileSidebarOpen = !this.mobileSidebarOpen;
+                    document.querySelector('.sidebar').classList.toggle('open');
+                }
+            },
+            mounted() {
+                // Initialize charts
+                this.initCharts();
+            },
+            methods: {
+                initCharts() {
+                    // Sales Chart
+                    const salesCtx = document.getElementById('salesChart').getContext('2d');
+                    new Chart(salesCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
+                            datasets: [{
+                                label: 'Vendas 2023',
+                                data: [15000, 18000, 21000, 19000, 22000, 24000, 24780],
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                borderColor: 'rgba(79, 70, 229, 1)',
+                                borderWidth: 2,
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    grid: {
+                                        drawBorder: false
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Revenue Chart
+                    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                    new Chart(revenueCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['E-commerce', 'Loja Física', 'Atacado', 'Assinaturas'],
+                            datasets: [{
+                                data: [45, 30, 15, 10],
+                                backgroundColor: [
+                                    'rgba(79, 70, 229, 0.8)',
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(245, 158, 11, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)'
+                                ],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '70%',
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        usePointStyle: true,
+                                        padding: 20
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
